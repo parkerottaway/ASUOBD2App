@@ -4,24 +4,14 @@ package com.example.asuobd2app
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Toast
-import androidx.annotation.RequiresApi
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.displayMetrics
 import org.jetbrains.anko.toast
-import kotlin.system.exitProcess
 
 /**
  * Tested with Google Pixel 2 with Android 10.0.
@@ -44,10 +34,11 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_ENABLE_BLUETOOTH = 1
 
     /**
-     * When moving data, will use EXTRA_ADDRESS to access data.
+     * When moving data, will use EXTRA_ADDRESS and EXTRA_NAME to access data.
      */
     companion object {
-        val EXTRA_ADDRESS: String = "Device_address"
+        const val EXTRA_ADDRESS: String = "Device_address"
+        const val EXTRA_NAME:    String = "Device_name"
     }
 
     /**
@@ -55,33 +46,32 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        this.setContentView(R.layout.activity_main)
 
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        this.bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
-        if( bluetoothAdapter == null ) {
+        if( this.bluetoothAdapter == null ) {
 
             // Tell the user that Bluetooth not supported and exit.
-            toast("Bluetooth not supported...")
+            this.toast("Bluetooth not supported...")
             return
         }
 
         // Specify the adapter will not be null and check if the adapter is enabled.
-        if( !bluetoothAdapter!!.isEnabled) {
+        if( !this.bluetoothAdapter!!.isEnabled) {
 
             // Prompt user to enable Bluetooth on device.
             val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBluetoothIntent,REQUEST_ENABLE_BLUETOOTH)
+            this.startActivityForResult(enableBluetoothIntent, this.REQUEST_ENABLE_BLUETOOTH)
         }
 
         /**
          * Lambda expression that will list paired Bluetooth devices when REFRESH
          * is tapped.
          */
-        select_device_refresh.setOnClickListener {
-            pairedDeviceList()
+        this.select_device_refresh.setOnClickListener {
+            this.pairedDeviceList()
         }
-
 
     }
 
@@ -90,34 +80,44 @@ class MainActivity : AppCompatActivity() {
         /*
          * Assign the connected devices to the pairedDevices set.
          */
-        pairedDevices = bluetoothAdapter!!.bondedDevices
+        this.pairedDevices = this.bluetoothAdapter!!.bondedDevices
+
+        val btNameList: ArrayList<String> = ArrayList()
 
         val list: ArrayList<BluetoothDevice> = ArrayList()
 
         /*
          * Check if there are devices.
          */
-        if(!pairedDevices.isEmpty()) {
+        if(this.pairedDevices.isNotEmpty()) {
 
             // Iterate through paired devices and add them to list.
-            for (device: BluetoothDevice in pairedDevices) {
+            for (device: BluetoothDevice in this.pairedDevices) {
+                btNameList.add(device.name + "\n" + device.address)
                 list.add(device)
             }
         } else {
-            toast("No paired Bluetooth devices found.")
+            this.toast("No paired Bluetooth devices found.")
         }
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,list)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,btNameList)
 
-        select_device_list.adapter = adapter
+        this.select_device_list.adapter = adapter
 
-        select_device_list.onItemClickListener = AdapterView.OnItemClickListener{_, _, position, _ ->
+        this.select_device_list.onItemClickListener = AdapterView.OnItemClickListener{ _, _, position, _ ->
             val device: BluetoothDevice = list[position]
             val address: String = device.address
+            val name: String = device.name
 
-            val intent = Intent(this, displayMetrics::class.java)
-            intent.putExtra(EXTRA_ADDRESS,address)
-            startActivity(intent)
+            // Transition to the DisplayMetrics activity.
+            val intent = Intent(this, DisplayMetrics::class.java)
+            val data = Bundle()
+            data.putString(EXTRA_NAME,name)
+            data.putString(EXTRA_ADDRESS,address)
+            //intent.putExtra(EXTRA_ADDRESS,address)
+            intent.putExtras(data)
+            this.startActivity(intent)
+            finish() // Prevent user from changing the device after they have connected.
         }
     }
 
@@ -127,15 +127,15 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if(requestCode == REQUEST_ENABLE_BLUETOOTH) {
+        if(requestCode == this.REQUEST_ENABLE_BLUETOOTH) {
             if(resultCode == Activity.RESULT_OK) {
-                if(bluetoothAdapter!!.isEnabled) {
-                    toast("Bluetooth has been enabled!")
+                if(this.bluetoothAdapter!!.isEnabled) {
+                    this.toast("Bluetooth has been enabled!")
                 } else {
-                    toast("Bluetooth has been disabled!")
+                    this.toast("Bluetooth has been disabled!")
                 }
             } else if(resultCode == Activity.RESULT_CANCELED){
-                toast("Bluetooth enabling has been canceled.")
+                this.toast("Bluetooth enabling has been canceled.")
             }
         }
     }
