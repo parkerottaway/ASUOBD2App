@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
 
         /**
          * Lambda expression that will list paired Bluetooth devices when REFRESH
-         * is tapped. FIXME TROUBLE HERE!
+         * is tapped.
          */
         select_device_refresh.setOnClickListener {
             pairedDeviceList()
