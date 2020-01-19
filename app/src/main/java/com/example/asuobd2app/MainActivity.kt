@@ -131,6 +131,7 @@ class MainActivity : AppCompatActivity() {
             if(resultCode == Activity.RESULT_OK) {
                 if(this.bluetoothAdapter!!.isEnabled) {
                     this.toast("Bluetooth has been enabled!")
+                    this.pairedDeviceList()
                 } else {
                     this.toast("Bluetooth has been disabled!")
                 }
