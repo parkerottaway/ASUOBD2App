@@ -5,13 +5,13 @@ import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import org.jetbrains.anko.displayMetrics
 import org.jetbrains.anko.toast
+import kotlin.collections.ArrayList
 
 /**
  * Tested with Google Pixel 2 with Android 10.0.
@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
     /**
      * Arbitrary number used to enable Bluetooth.
      */
-    private val REQUEST_ENABLE_BLUETOOTH = 1
+    private val REQUEST_ENABLE_BLUETOOTH:Int = 1
 
     /**
      * When moving data, will use EXTRA_ADDRESS and EXTRA_NAME to access data.
@@ -63,6 +63,10 @@ class MainActivity : AppCompatActivity() {
             // Prompt user to enable Bluetooth on device.
             val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             this.startActivityForResult(enableBluetoothIntent, this.REQUEST_ENABLE_BLUETOOTH)
+
+        }
+        else{
+            this.pairedDeviceList() // Automatically list the devices if bluetooth is enabled.
         }
 
         /**
