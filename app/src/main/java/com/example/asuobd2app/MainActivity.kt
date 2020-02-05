@@ -18,6 +18,7 @@ import kotlin.collections.ArrayList
  */
 class MainActivity : AppCompatActivity() {
 
+    private var deviceName: String = "ESP32test"
     /**
      * Device's on-board Bluetooth adapter.
      */
@@ -97,8 +98,11 @@ class MainActivity : AppCompatActivity() {
 
             // Iterate through paired devices and add them to list.
             for (device: BluetoothDevice in this.pairedDevices) {
-                btNameList.add(device.name + "\n" + device.address)
-                list.add(device)
+                if(device.name == this.deviceName){
+                    btNameList.add(device.name + "\n" + device.address)
+                    list.add(device)
+                }
+                
             }
         } else {
             this.toast("No paired Bluetooth devices found.")
