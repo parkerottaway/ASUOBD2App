@@ -2,4 +2,6 @@
     <string name="app_name">ASUOBD2App</string>
     <string name="refresh">Refresh</string>
     <string name="led_prefix">LED On: </string>
+    <string name="speed_postfix"> mph</string>
+    <string name="engine_rpm_postfix"> rpm</string>
 </resources>

@@ -11,6 +11,7 @@ import java.util.UUID
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.IOException
+import org.json.JSONObject
 
 
 /**
@@ -20,15 +21,13 @@ class DisplayMetrics: AppCompatActivity() {
 
     private var bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private var device: BluetoothDevice? = null
-    private var ledStatus: Boolean = false
-    private var disp: String = ""
     private var mmOutputStream: OutputStream? = null
+    private var mmInputStream: InputStream? = null
     private var mmSocket: BluetoothSocket? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.setContentView(R.layout.display_metrics)
-        this.ledTextView.text = getString(R.string.led_prefix) + this.ledStatus.toString()
 
         /**
          * Get the device selected from the main activity and set the sucket for that device
@@ -36,40 +35,71 @@ class DisplayMetrics: AppCompatActivity() {
         this.device = bluetoothAdapter.getRemoteDevice(intent.getStringExtra("Device_address"))
         this.mmSocket = this.device!!.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"))
 
+
         /**
          * Connect to that device if available and set the output stream
          * Otherwise finish this activity
          */
         try{
             this.mmSocket!!.connect()
-            this.mmOutputStream = this.mmSocket!!.outputStream
+            this.mmOutputStream = this.mmSocket!!.outputStream // Send
+            this.mmInputStream = this.mmSocket!!.inputStream // Receive
         }
         catch (ex:IOException){
             this.toast("Could not connect")
 
         }
 
-        /**
-         * if the led button is clicked, the led status changes and displayed.
-         * if the status is true it sends '1', and if false it sends '0' to the bluetooth device.
-         * if the device is not connected, it will print out a message.
-         */
-        this.toggleLEDButton.setOnClickListener {
-            if(this.mmSocket!!.isConnected) {
-                this.ledStatus = !this.ledStatus
-                disp = getString(R.string.led_prefix) + this.ledStatus.toString()
-                this.ledTextView.text = disp
+        // Start reading from the Arduino.
+        class ReadThread(private val ins: InputStream) : Thread() {
 
-                if (ledStatus == true) {
-                    this.mmOutputStream!!.write(0x31)
-                } else {
-                    this.mmOutputStream!!.write(0x30)
+            /**
+             * StringBuilder to create JSON byte by byte.
+             */
+            private val sb: StringBuilder = StringBuilder()
+
+            /**
+             * Object version of the JSON.
+             */
+            private var rootObj : JSONObject? = null
+
+            /**
+             * String to place each char received from ESP32.
+             */
+            private var jsonString: String = ""
+
+            private var canDeser: Boolean = false
+
+            /**
+             * Thread logic for listening to ESP32.
+             */
+            override fun run() {
+                while (true) {
+                    sb.clear() // Empty the string builder to build new JSON.
+                    canDeser = false
+                    while (ins.available() > 0) {
+                        canDeser = true
+                        sb.append(jsonString).append(ins.read().toChar())
+                    }
+
+                    if(sb.length != 0) {
+                        jsonString = sb.toString()
+                        println("jsonString: " + jsonString)
+                    }
+                    if(canDeser && jsonString.length > 1 && jsonString[0].equals('{')){ // Check if you can deserialzie.
+                        rootObj = JSONObject(jsonString)
+
+                        // Display speed
+                        textView4.text = rootObj!!.getInt("speed").toString() + " " + getString(R.string.speed_postfix)
+                        textView6.text = rootObj!!.getDouble("engineRPM").toString() + " " + getString(R.string.engine_rpm_postfix)
+                    }
+                    canDeser = false
                 }
             }
-            else{
-                this.toast("Device not connected")
-            }
         }
+
+        val rt: ReadThread = ReadThread(this.mmInputStream!!)
+        rt.start()
     }
 }
 /* Arduino code:

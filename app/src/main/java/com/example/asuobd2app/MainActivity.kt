@@ -18,7 +18,7 @@ import kotlin.collections.ArrayList
  */
 class MainActivity : AppCompatActivity() {
 
-    private var deviceName: String = "ESP32test"
+    private var deviceName: String = "ASU_OBD2_DEVICE"
     /**
      * Device's on-board Bluetooth adapter.
      */
