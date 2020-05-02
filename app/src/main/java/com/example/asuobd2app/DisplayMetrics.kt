@@ -75,25 +75,26 @@ class DisplayMetrics: AppCompatActivity() {
              */
             override fun run() {
                 while (true) {
-                    sb.clear() // Empty the string builder to build new JSON.
-                    canDeser = false
-                    while (ins.available() > 0) {
-                        canDeser = true
-                        sb.append(jsonString).append(ins.read().toChar())
-                    }
+                    if (ins.available() > 0) {
+                        sb.clear() // Empty the string builder to build new JSON.
+                        while (ins.available() > 0) {
+                            canDeser = true
+                            sb.append(ins.read().toChar())
+                        }
 
-                    if(sb.length != 0) {
                         jsonString = sb.toString()
                         println("jsonString: " + jsonString)
-                    }
-                    if(canDeser && jsonString.length > 1 && jsonString[0].equals('{')){ // Check if you can deserialzie.
                         rootObj = JSONObject(jsonString)
 
+                        this@DisplayMetrics.runOnUiThread(java.lang.Runnable {
+                            textView9.text =
+                                rootObj!!.getInt("speed").toString() + " " + getString(R.string.speed_postfix)
+                            textView6.text =
+                                rootObj!!.getDouble("engineRPM").toString() + " " + getString(R.string.engine_rpm_postfix)
+                        })
                         // Display speed
-                        textView4.text = rootObj!!.getInt("speed").toString() + " " + getString(R.string.speed_postfix)
-                        textView6.text = rootObj!!.getDouble("engineRPM").toString() + " " + getString(R.string.engine_rpm_postfix)
+
                     }
-                    canDeser = false
                 }
             }
         }
