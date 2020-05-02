@@ -91,6 +91,10 @@ class DisplayMetrics: AppCompatActivity() {
                                 rootObj!!.getInt("speed").toString() + " " + getString(R.string.speed_postfix)
                             textView6.text =
                                 rootObj!!.getDouble("engineRPM").toString() + " " + getString(R.string.engine_rpm_postfix)
+                            textView7.text =
+                                rootObj!!.getInt("engineLoad").toString() + " " + "%"
+                            textView8.text =
+                                rootObj!!.getDouble("coolantTemp").toString() + " " + "°F"
                         })
                         // Display speed
 
