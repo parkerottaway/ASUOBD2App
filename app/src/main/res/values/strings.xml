@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ASUOBD2App</string>
+    <string name="app_name">ASUOBD2</string>
     <string name="refresh">Refresh</string>
     <string name="led_prefix">LED On: </string>
     <string name="speed_postfix"> mph</string>
